@@ -1,7 +1,8 @@
 version: 1.0.{build}
+image: Visual Studio 2013
 branches:
   only:
-  - master
+  - build_2.12
 clone_folder: C:\openvswitch
 init:
 - ps: >-
@@ -15,9 +16,9 @@ init:
 
     Invoke-WebRequest $source -OutFile $destination
 
-    $source = "https://slproweb.com/download/Win32OpenSSL-1_0_2n.exe"
+    $source = "https://slproweb.com/download/Win32OpenSSL-1_0_2u.exe"
 
-    $destination = "C:\ovs-build-downloads\Win32OpenSSL-1_0_2n.exe"
+    $destination = "C:\ovs-build-downloads\Win32OpenSSL-1_0_2u.exe"
 
     Invoke-WebRequest $source -OutFile $destination
 
@@ -27,7 +28,7 @@ init:
 
     cd C:\ovs-build-downloads
 
-    .\Win32OpenSSL-1_0_2n.exe /silent /verysilent /sp- /suppressmsgboxes
+    .\Win32OpenSSL-1_0_2u.exe /silent /verysilent /sp- /suppressmsgboxes
 
     Start-Sleep -s 30
 
@@ -36,7 +37,7 @@ init:
     python -m pip install six pypiwin32 --disable-pip-version-check
 
 build_script:
-- '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\Tools\VsDevCmd"'
+- '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\Tools\VsDevCmd.bat"'
 - C:\MinGW\msys\1.0\bin\bash -lc "echo \"C:/MinGW /mingw\" > /etc/fstab"
 - C:\MinGW\msys\1.0\bin\bash -lc "cp /c/pthreads-win32/Pre-built.2/dll/x86/*.dll /c/openvswitch/."
 - C:\MinGW\msys\1.0\bin\bash -lc "mv /bin/link.exe /bin/link_copy.exe"
