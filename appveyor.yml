@@ -2,7 +2,7 @@ version: 1.0.{build}
 image: Visual Studio 2013
 branches:
   only:
-  - build_2.13
+  - nsx_2.12
 clone_folder: C:\openvswitch
 init:
 - ps: >-
@@ -43,10 +43,9 @@ build_script:
 - C:\MinGW\msys\1.0\bin\bash -lc "mv /bin/link.exe /bin/link_copy.exe"
 - C:\MinGW\msys\1.0\bin\bash -lc "cd /c/openvswitch && ./boot.sh"
 - C:\MinGW\msys\1.0\bin\bash -lc "cd /c/openvswitch && ./configure CC=build-aux/cccl LD=\"`which link`\" LIBS=\"-lws2_32 -lShlwapi -liphlpapi -lwbemuuid -lole32 -loleaut32\" --with-pthread=C:/pthreads-win32/Pre-built.2 --with-openssl=C:/OpenSSL-Win32 --with-vstudiotarget=\"Debug\"
-- C:\MinGW\msys\1.0\bin\bash -lc "cd /c/openvswitch && make -j2"
+- C:\MinGW\msys\1.0\bin\bash -lc "cd /c/openvswitch && make -j4"
 - C:\MinGW\msys\1.0\bin\bash -lc "cd /c/openvswitch && make datapath_windows_analyze"
-- C:\MinGW\msys\1.0\bin\bash -lc "cd /c/openvswitch && make install"
 
 after_build:
   - ps: 7z a C:\nsx-ovs-2.12.zip C:\openvswitch
-  - ps: Push-AppveyorArtifact C:\ovs-2.12.zip
+  - ps: Push-AppveyorArtifact C:\nsx-ovs-2.12.zip
