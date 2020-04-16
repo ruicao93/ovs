@@ -128,12 +128,15 @@ POVS_VPORT_ENTRY OvsFindVportByPortNo(POVS_SWITCH_CONTEXT switchContext,
 /* "name" is null-terminated */
 _Requires_lock_held_(switchContext->dispatchLock)
 POVS_VPORT_ENTRY OvsFindVportByOvsName(POVS_SWITCH_CONTEXT switchContext,
+                                       OVS_VPORT_TYPE ovsPortType,
                                        PSTR name);
 _Requires_lock_held_(switchContext->dispatchLock)
 POVS_VPORT_ENTRY OvsFindVportByHvNameA(POVS_SWITCH_CONTEXT switchContext,
+                                       OVS_VPORT_TYPE ovsPortType,
                                        PSTR name);
 _Requires_lock_held_(switchContext->dispatchLock)
 POVS_VPORT_ENTRY OvsFindVportByHvNameW(POVS_SWITCH_CONTEXT switchContext,
+                                       OVS_VPORT_TYPE ovsPortType,
                                        PWSTR wsName, SIZE_T wstrSize);
 _Requires_lock_held_(switchContext->dispatchLock)
 POVS_VPORT_ENTRY OvsFindVportByPortIdAndNicIndex(POVS_SWITCH_CONTEXT switchContext,
@@ -274,6 +277,40 @@ NDIS_STATUS InitOvsVportCommon(POVS_SWITCH_CONTEXT switchContext,
 NTSTATUS OvsInitTunnelVport(PVOID usrParamsCtx, POVS_VPORT_ENTRY vport,
                             OVS_VPORT_TYPE ovsType, UINT16 dstport);
 NTSTATUS OvsInitBridgeInternalVport(POVS_VPORT_ENTRY vport);
+
+#define VPORT_NAME_PREFIX     "vEthernet ("
+#define VPORT_NAME_PREFIX_LEN 11
+
+static __inline BOOLEAN
+GetNormalizedPort(PCHAR dest, PCHAR source, UINT32 length)
+{
+    /* The vport name string is at least 14 chars: "vEthernet (x)" including tail '\0' */
+    if (length >= VPORT_NAME_PREFIX_LEN + 3) {
+        if (RtlCompareMemory(source, VPORT_NAME_PREFIX, VPORT_NAME_PREFIX_LEN) !=
+              VPORT_NAME_PREFIX_LEN){
+            return FALSE;
+        }
+        RtlCopyMemory(dest, source + VPORT_NAME_PREFIX_LEN, length - VPORT_NAME_PREFIX_LEN - 1);
+        dest[length - VPORT_NAME_PREFIX_LEN - 1] = '\0';
+        return TRUE;
+    }
+    return FALSE;
+}
+static __inline BOOLEAN
+GetNormalizedPortW(PWCHAR dest, PWCHAR source, UINT32 length)
+{
+    if (length >= VPORT_NAME_PREFIX_LEN + 3) {
+        if (RtlCompareMemory(source, L"vEthernet (", VPORT_NAME_PREFIX_LEN * sizeof(WCHAR)) !=
+              VPORT_NAME_PREFIX_LEN * sizeof(WCHAR)){
+            return FALSE;
+        }
+        RtlCopyMemory(dest, source + VPORT_NAME_PREFIX_LEN,
+              (length - VPORT_NAME_PREFIX_LEN - 1) * sizeof(WCHAR));
+        dest[length - VPORT_NAME_PREFIX_LEN - 1] = L'\0';
+        return TRUE;
+    }
+    return FALSE;
+}
 
 POVS_VPORT_ENTRY OvsAllocateVport(VOID);
 
