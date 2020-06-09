@@ -1,8 +1,8 @@
 version: 1.0.{build}
-image: Visual Studio 2013
+image: Visual Studio 2019
 branches:
   only:
-  - build_2.13
+  - build_vs2019_213
 clone_folder: C:\openvswitch_compile
 init:
 - ps: $env:PATH ="C:\Python37;"+$env:PATH
@@ -28,7 +28,7 @@ init:
 
     Invoke-WebRequest $source -OutFile $destination
 
-    $source = "https://indy.fulgan.com/SSL/openssl-1.0.2u-x64_86-win64.zip"
+    $source = "https://github.com/ruicao93/openssl/releases/download/OpenSSL_1_0_2u/openssl-1.0.2u-x64_86-win64.zip"
 
     $destination = "C:\ovs-build-downloads\ssl\openssl-1.0.2u-x64_86-win64.zip"
 
@@ -57,7 +57,7 @@ init:
     python3 -m pip install pypiwin32 --disable-pip-version-check
 
 build_script:
-- '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64'
+- '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"'
 - C:\MinGW\msys\1.0\bin\bash -lc "echo \"C:/MinGW /mingw\" > /etc/fstab"
 - C:\MinGW\msys\1.0\bin\bash -lc "cp /c/pthreads-win32/Pre-built.2/dll/x64/*.dll /c/openvswitch_compile/."
 - C:\MinGW\msys\1.0\bin\bash -lc "mv /bin/link.exe /bin/link_copy.exe"
