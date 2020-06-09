@@ -989,10 +989,10 @@ nl_sock_transact_multiple__(struct nl_sock *sock,
             reply_nlmsg = (struct nlmsghdr *)reply_buf;
 
             if (request_nlmsg->nlmsg_seq != reply_nlmsg->nlmsg_seq) {
-                ovs_assert(request_nlmsg->nlmsg_seq == reply_nlmsg->nlmsg_seq);
-                VLOG_DBG_RL(&rl, "mismatched seq request %#"PRIx32
+                VLOG_INFO_RL(&rl, "mismatched seq request %#"PRIx32
                     ", reply %#"PRIx32, request_nlmsg->nlmsg_seq,
                     reply_nlmsg->nlmsg_seq);
+				ovs_assert(request_nlmsg->nlmsg_seq == reply_nlmsg->nlmsg_seq);
                 break;
             }
 

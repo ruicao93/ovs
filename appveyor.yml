@@ -1,15 +1,20 @@
 version: 1.0.{build}
+image: Visual Studio 2019
 branches:
   only:
-  - master
-clone_folder: C:\openvswitch
+  - build_vs2019_master
+clone_folder: C:\openvswitch_compile
 init:
 - ps: $env:PATH ="C:\Python37;"+$env:PATH
 - ps: New-Item -Type HardLink -Path "C:\Python37\python3.exe" -Value "C:\Python37\python.exe"
 - ps: >-
     mkdir C:\pthreads-win32
 
-    mkdir C:\ovs-build-downloads
+    mkdir C:\ovs-build-downloads\ssl
+
+    mkdir C:\openvswitch\driver
+    
+    mkdir C:\openvswitch\redist
 
     $source = "ftp://sourceware.org/pub/pthreads-win32/pthreads-w32-2-9-1-release.zip"
 
@@ -17,10 +22,16 @@ init:
 
     Invoke-WebRequest $source -OutFile $destination
 
-    $source = "https://slproweb.com/download/Win32OpenSSL-1_0_2t.exe"
+    $source = "https://slproweb.com/download/Win64OpenSSL-1_0_2u.exe"
 
-    $destination = "C:\ovs-build-downloads\Win32OpenSSL-1_0_2t.exe"
+    $destination = "C:\ovs-build-downloads\Win64OpenSSL-1_0_2u.exe"
 
+    Invoke-WebRequest $source -OutFile $destination
+
+    $source = "https://download.microsoft.com/download/3/2/2/3224B87F-CFA0-4E70-BDA3-3DE650EFEBA5/vcredist_x64.exe"
+    
+    $destination = "C:\openvswitch\redist\vcredist_x64.exe"
+    
     Invoke-WebRequest $source -OutFile $destination
 
     cd C:\pthreads-win32
@@ -29,20 +40,29 @@ init:
 
     cd C:\ovs-build-downloads
 
-    .\Win32OpenSSL-1_0_2t.exe /silent /verysilent /sp- /suppressmsgboxes
+    .\Win64OpenSSL-1_0_2u.exe /silent /verysilent /sp- /suppressmsgboxes
 
     Start-Sleep -s 30
 
-    cd C:\openvswitch
+    cd C:\openvswitch_compile
 
     python3 -m pip install pypiwin32 --disable-pip-version-check
 
 build_script:
-- '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\Tools\VsDevCmd"'
+- '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"'
 - C:\MinGW\msys\1.0\bin\bash -lc "echo \"C:/MinGW /mingw\" > /etc/fstab"
-- C:\MinGW\msys\1.0\bin\bash -lc "cp /c/pthreads-win32/Pre-built.2/dll/x86/*.dll /c/openvswitch/."
+- C:\MinGW\msys\1.0\bin\bash -lc "cp /c/pthreads-win32/Pre-built.2/dll/x64/*.dll /c/openvswitch_compile/."
 - C:\MinGW\msys\1.0\bin\bash -lc "mv /bin/link.exe /bin/link_copy.exe"
-- C:\MinGW\msys\1.0\bin\bash -lc "cd /c/openvswitch && ./boot.sh"
-- C:\MinGW\msys\1.0\bin\bash -lc "cd /c/openvswitch && ./configure CC=build-aux/cccl LD=\"`which link`\" LIBS=\"-lws2_32 -lShlwapi -liphlpapi -lwbemuuid -lole32 -loleaut32\" --with-pthread=C:/pthreads-win32/Pre-built.2 --with-openssl=C:/OpenSSL-Win32 --with-vstudiotarget=\"Debug\"
-- C:\MinGW\msys\1.0\bin\bash -lc "cd /c/openvswitch && make"
-- C:\MinGW\msys\1.0\bin\bash -lc "cd /c/openvswitch && make datapath_windows_analyze"
+- C:\MinGW\msys\1.0\bin\bash -lc "cd /c/openvswitch_compile && ./boot.sh"
+- C:\MinGW\msys\1.0\bin\bash -lc "cd /c/openvswitch_compile && ./configure CC=build-aux/cccl LD=\"`which link`\" LIBS=\"-lws2_32 -lShlwapi -liphlpapi -lwbemuuid -lole32 -loleaut32\" --prefix=C:/openvswitch/usr --localstatedir=C:/openvswitch/var --sysconfdir=C:/openvswitch/etc --with-pthread=C:/pthreads-win32/Pre-built.2 --enable-ssl --with-openssl=C:/OpenSSL-Win64 --with-vstudiotarget=\"Debug\"  --with-vstudiotargetver=\"Win10\" --with-debug"
+- C:\MinGW\msys\1.0\bin\bash -lc "cd /c/openvswitch_compile && make -j2"
+- C:\MinGW\msys\1.0\bin\bash -lc "cd /c/openvswitch_compile && make install"
+- cp C:\pthreads-win32\Pre-built.2\dll\x64\pthreadVC2.dll C:\openvswitch\usr\bin
+- cp C:\pthreads-win32\Pre-built.2\dll\x64\pthreadVC2.dll C:\openvswitch\usr\sbin 
+- ps: cp C:\openvswitch_compile\datapath-windows\x64\Win10Debug\package\* C:\openvswitch\driver
+- ps: cp C:\openvswitch_compile\datapath-windows\x64\Win10Debug\package.cer C:\openvswitch\driver
+- ps: cp C:\openvswitch_compile\datapath-windows\misc\* C:\openvswitch\driver
+
+after_build:
+  - ps: 7z a C:\ovs-2.13.zip C:\openvswitch
+  - ps: Push-AppveyorArtifact C:\ovs-2.13.zip
