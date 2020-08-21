@@ -2,7 +2,7 @@ version: 1.0.{build}
 image: Visual Studio 2019
 branches:
   only:
-  - build_123_from_release
+  - build_214_from_release
 clone_folder: C:\openvswitch_compile222
 init:
 - ps: $env:PATH ="C:\Python37;"+$env:PATH
@@ -53,7 +53,7 @@ init:
     cd C:\openvswitch_compile222
 
 build_script:
-- curl.exe -LO https://www.openvswitch.org/releases/openvswitch-2.13.1.tar.gz && cmake -E tar xf openvswitch-2.13.1.tar.gz && mv openvswitch-2.13.1 C:\openvswitch_compile
+- curl.exe -LO https://www.openvswitch.org/releases/openvswitch-2.14.0.tar.gz && cmake -E tar xf openvswitch-2.14.0.tar.gz && mv openvswitch-2.14.0 C:\openvswitch_compile
 - cd C:\openvswitch_compile
 - '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"'
 - C:\MinGW\msys\1.0\bin\bash -lc "echo \"C:/MinGW /mingw\" > /etc/fstab"
@@ -75,7 +75,7 @@ build_script:
 
 after_build:
   - ps: $env:BUILD_VERSION="1.1"
-  - ps: 7z a "C:\ovs-2.13.1-$env:BUILD_VERSION-win64.zip" C:\openvswitch
-  - ps: cd c:\ ; sha256sum "ovs-2.13.1-$env:BUILD_VERSION-win64.zip" > "c:\ovs-2.13.1-$env:BUILD_VERSION-win64.zip.sha256"
-  - ps: Push-AppveyorArtifact "C:\ovs-2.13.1-$env:BUILD_VERSION-win64.zip"
-  - ps: Push-AppveyorArtifact "c:\ovs-2.13.1-$env:BUILD_VERSION-win64.zip.sha256"
+  - ps: 7z a "C:\ovs-2.14.0-$env:BUILD_VERSION-win64.zip" C:\openvswitch
+  - ps: cd c:\ ; sha256sum "ovs-2.14.0-$env:BUILD_VERSION-win64.zip" > "c:\ovs-2.14.0-$env:BUILD_VERSION-win64.zip.sha256"
+  - ps: Push-AppveyorArtifact "C:\ovs-2.14.0-$env:BUILD_VERSION-win64.zip"
+  - ps: Push-AppveyorArtifact "c:\ovs-2.14.0-$env:BUILD_VERSION-win64.zip.sha256"
